@@ -101,6 +101,23 @@ def generate_cut_images(images_list, range : tuple = (2,3)):
             returned.append(image)
     return(returned)
 
+def generate_negative_samples(images_list):
+    returned = []
+    images = tqdm(images_list)
+    for img in images:
+        images.set_description("Generating negative samples")
+        h,w = img.shape[0], img.shape[1]
+        x, y = random.randint(0,h-50), random.randint(0,w-50)
+        i = random.randint(1,5)
+        he = random.randint(10, h-x)
+        if he//i < w-50:
+            wi = he // i
+        else:
+            wi = w-y
+        image = img[x:x+he,y:y+wi,:]
+        returned.append(image)
+    return(returned)
+
 def get_negatives(path : Path = Path.cwd()):
     folder = path / "train/images/neg/"
     negatives = []
@@ -110,8 +127,15 @@ def get_negatives(path : Path = Path.cwd()):
         images.set_description("Getting negative examples")
         image = io.imread(img)
         negatives.append(image)
-    returned += generate_cut_images(negatives, (5,10))
-    returned += generate_cut_images(negatives, (5,10))
+    returned += generate_negative_samples(negatives)
+    returned += generate_negative_samples(negatives)
+    returned += generate_negative_samples(negatives)
+    returned += generate_negative_samples(negatives)
+    returned += generate_negative_samples(negatives)
+    returned += generate_negative_samples(negatives)
+    returned += generate_negative_samples(negatives)
+    returned += generate_negative_samples(negatives)
+    returned += generate_negative_samples(negatives)
     return returned
 
 def prepare_training_data(image_size : tuple = (50,50), path : Path = Path.cwd()):
@@ -123,7 +147,7 @@ def prepare_training_data(image_size : tuple = (50,50), path : Path = Path.cwd()
     neg_path.mkdir(parents = True, exist_ok=True)
     positives = get_positives(path)
     rotated = generate_rotated_images(positives)
-    total_positives = positives + rotated + generate_cut_images(positives + rotated)
+    total_positives = positives + rotated
     negatives = get_negatives(path)
     positives_imgs = tqdm(total_positives)
     negative_imgs = tqdm(negatives)
@@ -131,13 +155,11 @@ def prepare_training_data(image_size : tuple = (50,50), path : Path = Path.cwd()
     for img in positives_imgs:
         positives_imgs.set_description("Saving positive training data")
         img = resize(img, image_size, anti_aliasing=True) 
-        io.imsave(pos_path / f'{id}.png', img_as_ubyte(img))
+        io.imsave(pos_path / f'{id}.jpg', img_as_ubyte(img), check_contrast=False)
         id += 1
     id = 0
     for img in negative_imgs:
         positives_imgs.set_description("Saving negative training data")
         img = resize(img, image_size, anti_aliasing=True) 
-        io.imsave(neg_path / f'{id}.png', img_as_ubyte(img))
+        io.imsave(neg_path / f'{id}.jpg', img_as_ubyte(img), check_contrast=False)
         id += 1
-
-    
