@@ -1,0 +1,13 @@
+from training import *
+from data_preparation import *
+from prediction import * 
+from tqdm import tqdm
+
+#prepare_training_data()
+#clf = train_model()
+#detect_false_negs(clf, Path.cwd() / "train" / "images" / "neg")
+#retrain_model()
+clf = load_model(Path.cwd() / "model_retrained(50, 50).sav")
+
+for img in (Path.cwd() / "test").glob("*.jpg"):
+    sliding_window(io.imread(img), clf)
